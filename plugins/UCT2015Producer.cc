@@ -1303,46 +1303,7 @@ void UCT2015Producer::makeTaus() {
           }
         }
       }
-
-          
-   
-      /*
-      bool MATCHEDJETFOUND_=false;
-
-      // Look for overlapping jet and require that isolation be passed
-      for(list<UCTCandidate>::iterator jet = jetList.begin(); jet != jetList.end(); jet++) {
-        //                                  for(list<UCTCandidate>::iterator jet = corrJetList.begin(); jet != corrJetList.end(); jet++) {      
-        if((int)region->gctPhi() == jet->getInt("rgnPhi") &&
-          (int)region->gctEta() == jet->getInt("rgnEta")) {
-          MATCHEDJETFOUND_=true;
-          rlxTauRegionOnlyList.back().setFloat("associatedJetPt", jet->pt());
-
-    	  //4x4 Iso definitions
-          if (do4x4Taus){
-            double jetIsolation = jet->pt() - regionEt;        // Jet isolation
-            double relativeJetIsolation = jetIsolation / regionEt;
-            if(relativeJetIsolation < relativeTauIsolationCut || (regionEt >= switchOffTauIso && relativeJetIsolation < relativeJetIsolationLimit)){
-              isoTauRegionOnlyList.push_back(rlxTauRegionOnlyList.back());
-            }
-          }
-    	  //4x8 Iso definitions
-          else{
-            double jetIsolation = jet->pt() - tauEt;        // Jet isolation
-            double relativeJetIsolation = jetIsolation / tauEt;
-            if(relativeJetIsolation < relativeTauIsolationCut || (tauEt >= switchOffTauIso  && relativeJetIsolation < relativeJetIsolationLimit)){
-              isoTauRegionOnlyList.push_back(rlxTauRegionOnlyList.back());
-            }
-          }	
-
-          break;
-        }	
-      }
-      if(!MATCHEDJETFOUND_){ 
-        rlxTauRegionOnlyList.back().setFloat("associatedJetPt", -777);
-        isoTauRegionOnlyList.push_back(rlxTauRegionOnlyList.back());
-      }*/
     } 
-  	
   }
   rlxTauRegionOnlyList.sort();
   isoTauRegionOnlyList.sort();
