@@ -1048,21 +1048,10 @@ void UCT2015Producer::makeEGTaus() {
           egtauCand.setFloat("associatedRegionEt", regionEt);
           egtauCand.setFloat("associatedSecondRegionEt", associatedSecondRegionEt);
           egtauCand.setInt("associatedSecondRegionMIP", mipInSecondRegion);
-          egtauCand.setInt("associatedSecondRegionTau",tauInSecondRegion);
-          egtauCand.setInt("associated4x4Tau",tauInAssociated4x4);
-          egtauCand.setInt("associated4x4TauE",tauInAssociated4x4E);
-          egtauCand.setInt("associated4x4TauSE",tauInAssociated4x4SE);
-          egtauCand.setInt("associated4x4TauS",tauInAssociated4x4S);
-          egtauCand.setInt("associated4x4TauSW",tauInAssociated4x4SW);
-          egtauCand.setInt("associated4x4TauW",tauInAssociated4x4W);
-          egtauCand.setInt("associated4x4TauNW",tauInAssociated4x4NW);
-          egtauCand.setInt("associated4x4TauN",tauInAssociated4x4N);
-          egtauCand.setInt("associated4x4TauNE",tauInAssociated4x4NE);
           egtauCand.setFloat("puLevelHI", puLevelHI);
           egtauCand.setFloat("puLevelHIUIC", puLevelHIUIC);
           egtauCand.setFloat("puLevelPUM0",puLevelPUM0);
           egtauCand.setInt("ellIsolation", egtCand->isolated());
-          egtauCand.setInt("tauVeto", region->tauVeto());
           egtauCand.setInt("mipBit", region->mip());
           egtauCand.setInt("isEle", isEle);
 
