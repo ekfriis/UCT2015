@@ -78,6 +78,14 @@ private:
                       unsigned int* mipInSecondRegion,
                       unsigned int* tauInSecondRegion,
                       unsigned int* tauInAssociated4x4,
+                      unsigned int* tauInAssociated4x4E,
+                      unsigned int* tauInAssociated4x4SE,
+                      unsigned int* tauInAssociated4x4S,
+                      unsigned int* tauInAssociated4x4SW,
+                      unsigned int* tauInAssociated4x4W,
+                      unsigned int* tauInAssociated4x4NW,
+                      unsigned int* tauInAssociated4x4N,
+                      unsigned int* tauInAssociated4x4NE,			
                       double* associatedSecondRegionEta,
                       double* associatedNW_Et,
                       double* associatedN_Et,
@@ -153,7 +161,10 @@ private:
 
   double relativeTauIsolationCut;
   double relativeJetIsolationCut;
+  double relativeJetIsolationLimit;
+
   double switchOffTauIso;
+  double switchOffTauVeto;
   list<UCTCandidate> rlxTauList, corrRlxTauList;
   list<UCTCandidate> rlxEGList;
   list<UCTCandidate> isoTauList, corrIsoTauList;
@@ -203,7 +214,9 @@ UCT2015Producer::UCT2015Producer(const edm::ParameterSet& iConfig) :
   
   relativeTauIsolationCut(iConfig.getParameter<double>("relativeTauIsolationCut")),
   relativeJetIsolationCut(iConfig.getParameter<double>("relativeJetIsolationCut")),
+  relativeJetIsolationLimit(iConfig.getParameter<double>("relativeJetIsolationLimit")),
   switchOffTauIso(iConfig.getParameter<double>("switchOffTauIso")),
+  switchOffTauVeto(iConfig.getParameter<double>("switchOffTauVeto")),
 
   egLSB_(iConfig.getParameter<double>("egammaLSB")),
   regionLSB_(iConfig.getParameter<double>("regionLSB"))
@@ -761,6 +774,14 @@ void UCT2015Producer::findAnnulusInfo(int ieta, int iphi,
                                      unsigned int* mipInSecondRegion,
                                      unsigned int* tauInSecondRegion,
                                      unsigned int* tauInAssociated4x4,
+                                     unsigned int* tauInAssociated4x4E,
+                                     unsigned int* tauInAssociated4x4SE,
+                                     unsigned int* tauInAssociated4x4S,
+                                     unsigned int* tauInAssociated4x4SW,
+                                     unsigned int* tauInAssociated4x4W,
+                                     unsigned int* tauInAssociated4x4NW,
+                                     unsigned int* tauInAssociated4x4N,
+                                     unsigned int* tauInAssociated4x4NE,
                                      double* associatedSecondRegionEta,
                                      double* associatedNW_Et,
                                      double* associatedN_Et,
@@ -790,6 +811,14 @@ void UCT2015Producer::findAnnulusInfo(int ieta, int iphi,
   bool highestNeighborHasMip = false;
   bool highestNeighborHasTau = false;
   bool highestAssociated4x4HasTau = false;
+  bool eAssociated4x4HasTau = false;
+  bool seAssociated4x4HasTau = false;
+  bool sAssociated4x4HasTau = false;
+  bool swAssociated4x4HasTau = false;
+  bool wAssociated4x4HasTau = false;
+  bool nwAssociated4x4HasTau = false;
+  bool nAssociated4x4HasTau = false;
+  bool neAssociated4x4HasTau = false;
   bool highestNeighborHasEGFlag = false;
   double secondNeighborEt = 0;
   double highestEtNeighborEta = 0;
@@ -807,31 +836,39 @@ void UCT2015Producer::findAnnulusInfo(int ieta, int iphi,
       if (ieta-regionEta == -1){
         if (deltaPhiNoAbs == -1){
           NE_Et = regionET;
+          neAssociated4x4HasTau = region->tauVeto();
         }
         else if(deltaPhiNoAbs == 0){
           E_Et = regionET;
+          eAssociated4x4HasTau = region->tauVeto();
         }
         else {
           SE_Et = regionET;
+          seAssociated4x4HasTau = region->tauVeto();
         }
       }
       else if (ieta - regionEta == 0){
         if (deltaPhiNoAbs == -1){
           N_Et = regionET;
+          nAssociated4x4HasTau = region->tauVeto();
         }
         if (deltaPhiNoAbs == 1){
           S_Et = regionET;
+          sAssociated4x4HasTau = region->tauVeto();
         }
       }
       else {
         if (deltaPhiNoAbs == -1){
           NW_Et = regionET;
+          nwAssociated4x4HasTau = region->tauVeto();
         }
         else if(deltaPhiNoAbs == 0){
             W_Et = regionET;
+            wAssociated4x4HasTau = region->tauVeto();
         }
         else {
             SW_Et = regionET;
+            swAssociated4x4HasTau = region->tauVeto();
         }
       }
 
@@ -851,6 +888,7 @@ void UCT2015Producer::findAnnulusInfo(int ieta, int iphi,
         if (regionET >= highest4x4Et){
           highest4x4Et = regionET;
           highestAssociated4x4HasTau = region->tauVeto();
+          highestNeighborHasEGFlag = region->tauVeto();
           if (ieta-regionEta == -1){
              highest4x4Loc = "East";
           }
@@ -901,6 +939,14 @@ void UCT2015Producer::findAnnulusInfo(int ieta, int iphi,
   *mipInSecondRegion = highestNeighborHasMip;
   *tauInSecondRegion = highestNeighborHasTau;
   *tauInAssociated4x4 = highestAssociated4x4HasTau;
+  *tauInAssociated4x4E = eAssociated4x4HasTau;
+  *tauInAssociated4x4SE = seAssociated4x4HasTau;
+  *tauInAssociated4x4S = sAssociated4x4HasTau;
+  *tauInAssociated4x4SW = swAssociated4x4HasTau;
+  *tauInAssociated4x4W = wAssociated4x4HasTau;
+  *tauInAssociated4x4NW = nwAssociated4x4HasTau;
+  *tauInAssociated4x4N = nAssociated4x4HasTau;
+  *tauInAssociated4x4NE = neAssociated4x4HasTau;
   *egFlagsInAnnulus = egFlagCount;
   *associatedNW_Et = NW_Et;
   *associatedN_Et = N_Et;
@@ -960,13 +1006,23 @@ void UCT2015Producer::makeEGTaus() {
           unsigned int mipInSecondRegion = 0;
           unsigned int tauInSecondRegion = 0;
           unsigned int tauInAssociated4x4 =0;
+          unsigned int tauInAssociated4x4E =0;
+          unsigned int tauInAssociated4x4SE =0;
+          unsigned int tauInAssociated4x4S =0;
+          unsigned int tauInAssociated4x4SW =0;
+          unsigned int tauInAssociated4x4W =0;
+          unsigned int tauInAssociated4x4NW =0;
+          unsigned int tauInAssociated4x4N =0;
+          unsigned int tauInAssociated4x4NE =0;
           
           findAnnulusInfo(
                           egtCand->regionId().ieta(), egtCand->regionId().iphi(),
                           *newRegions,
                           &associatedSecondRegionEt, &associated4x4Et, &associated4x4Loc, &associatedThirdRegionEt, 
-                          &mipsInAnnulus, &egFlagsInAnnulus,
-                          &mipInSecondRegion,&tauInSecondRegion,&tauInAssociated4x4,&associatedSecondRegionEta,&associatedNW_Et,
+                          &mipsInAnnulus, &egFlagsInAnnulus, &mipInSecondRegion,&tauInSecondRegion,
+                          &tauInAssociated4x4, &tauInAssociated4x4E, &tauInAssociated4x4SE, &tauInAssociated4x4S, 
+                          &tauInAssociated4x4SW, &tauInAssociated4x4W, &tauInAssociated4x4NW, &tauInAssociated4x4N, &tauInAssociated4x4NE,
+                          &associatedSecondRegionEta,&associatedNW_Et,
                           &associatedN_Et,&associatedNE_Et,&associatedE_Et,&associatedSE_Et,&associatedS_Et,
                           &associatedSW_Et,&associatedW_Et);
 
@@ -994,6 +1050,14 @@ void UCT2015Producer::makeEGTaus() {
           egtauCand.setInt("associatedSecondRegionMIP", mipInSecondRegion);
           egtauCand.setInt("associatedSecondRegionTau",tauInSecondRegion);
           egtauCand.setInt("associated4x4Tau",tauInAssociated4x4);
+          egtauCand.setInt("associated4x4TauE",tauInAssociated4x4E);
+          egtauCand.setInt("associated4x4TauSE",tauInAssociated4x4SE);
+          egtauCand.setInt("associated4x4TauS",tauInAssociated4x4S);
+          egtauCand.setInt("associated4x4TauSW",tauInAssociated4x4SW);
+          egtauCand.setInt("associated4x4TauW",tauInAssociated4x4W);
+          egtauCand.setInt("associated4x4TauNW",tauInAssociated4x4NW);
+          egtauCand.setInt("associated4x4TauN",tauInAssociated4x4N);
+          egtauCand.setInt("associated4x4TauNE",tauInAssociated4x4NE);
           egtauCand.setFloat("puLevelHI", puLevelHI);
           egtauCand.setFloat("puLevelHIUIC", puLevelHIUIC);
           egtauCand.setFloat("puLevelPUM0",puLevelPUM0);
@@ -1119,12 +1183,25 @@ void UCT2015Producer::makeTaus() {
     unsigned int mipInSecondRegion = 0;
     unsigned int tauInSecondRegion = 0;
     unsigned int tauInAssociated4x4 = 0;
+    unsigned int tauInAssociated4x4E =0;
+    unsigned int tauInAssociated4x4SE =0;
+    unsigned int tauInAssociated4x4S =0;
+    unsigned int tauInAssociated4x4SW =0;
+    unsigned int tauInAssociated4x4W =0;
+    unsigned int tauInAssociated4x4NW =0;
+    unsigned int tauInAssociated4x4N =0;
+    unsigned int tauInAssociated4x4NE =0;
+
     findAnnulusInfo(
-                   region->id().ieta(), region->id().iphi(),
-                   *newRegions,
-                   &associatedSecondRegionEt, &associated4x4Et, &associated4x4Loc, &associatedThirdRegionEt,  &mipsInAnnulus, &egFlagsInAnnulus,
-                   &mipInSecondRegion,&tauInSecondRegion,&tauInAssociated4x4,&associatedSecondRegionEta,&associatedNW_Et,&associatedN_Et,
-                   &associatedNE_Et,&associatedE_Et,&associatedSE_Et,&associatedS_Et,&associatedSW_Et,&associatedW_Et);
+                    region->id().ieta(), region->id().iphi(),
+                    *newRegions,
+                    &associatedSecondRegionEt, &associated4x4Et, &associated4x4Loc, &associatedThirdRegionEt,
+                    &mipsInAnnulus, &egFlagsInAnnulus, &mipInSecondRegion,&tauInSecondRegion,
+                    &tauInAssociated4x4, &tauInAssociated4x4E, &tauInAssociated4x4SE, &tauInAssociated4x4S,
+                    &tauInAssociated4x4SW, &tauInAssociated4x4W, &tauInAssociated4x4NW, &tauInAssociated4x4N, &tauInAssociated4x4NE,
+                    &associatedSecondRegionEta,&associatedNW_Et,
+                    &associatedN_Et,&associatedNE_Et,&associatedE_Et,&associatedSE_Et,&associatedS_Et,
+                    &associatedSW_Et,&associatedW_Et);
 
     double tauEt=regionEt;
     //find maximum neighbor
@@ -1168,11 +1245,68 @@ void UCT2015Producer::makeTaus() {
       tauCand.setInt("associatedSecondRegionMIP", mipInSecondRegion);
       tauCand.setInt("associatedSecondRegionTau",tauInSecondRegion);
       tauCand.setInt("associated4x4Tau",tauInAssociated4x4);
+      tauCand.setInt("associated4x4TauE",tauInAssociated4x4E);
+      tauCand.setInt("associated4x4TauSE",tauInAssociated4x4SE);
+      tauCand.setInt("associated4x4TauS",tauInAssociated4x4S);
+      tauCand.setInt("associated4x4TauSW",tauInAssociated4x4SW);
+      tauCand.setInt("associated4x4TauW",tauInAssociated4x4W);
+      tauCand.setInt("associated4x4TauNW",tauInAssociated4x4NW);
+      tauCand.setInt("associated4x4TauN",tauInAssociated4x4N);
+      tauCand.setInt("associated4x4TauNE",tauInAssociated4x4NE);
       tauCand.setFloat("associatedThirdRegionEt", associatedThirdRegionEt);
 
-      rlxTauRegionOnlyList.push_back(tauCand);
-   
+      bool MATCHEDJETFOUND_=false;
 
+      if (do4x4Taus){
+        rlxTauRegionOnlyList.push_back(tauCand);
+        //Look for overlapping jet and require that isolation be passed
+        for(list<UCTCandidate>::iterator jet = jetList.begin(); jet != jetList.end(); jet++) {
+        //                               for(list<UCTCandidate>::iterator jet = corrJetList.begin(); jet != corrJetList.end(); jet++) {      
+          if((int)region->gctPhi() == jet->getInt("rgnPhi") &&
+            (int)region->gctEta() == jet->getInt("rgnEta")) {
+            MATCHEDJETFOUND_=true;
+            rlxTauRegionOnlyList.back().setFloat("associatedJetPt", jet->pt());
+            double jetIsolation = jet->pt() - regionEt;        // Jet isolation
+            double relativeJetIsolation = jetIsolation / regionEt;
+            if(relativeJetIsolation < relativeTauIsolationCut || (regionEt >= switchOffTauIso && relativeJetIsolation < relativeJetIsolationLimit)){
+              isoTauRegionOnlyList.push_back(rlxTauRegionOnlyList.back());
+            }
+            break;
+          }  
+        }
+        if(!MATCHEDJETFOUND_){
+          rlxTauRegionOnlyList.back().setFloat("associatedJetPt", -777);
+          isoTauRegionOnlyList.push_back(rlxTauRegionOnlyList.back());
+        }
+      }
+      else { 
+        if ((tauInAssociated4x4 == 0 && region->tauVeto() == 0) || tauEt > switchOffTauVeto){
+          rlxTauRegionOnlyList.push_back(tauCand);
+          //Look for overlapping jet and require that isolation be passed
+          for(list<UCTCandidate>::iterator jet = jetList.begin(); jet != jetList.end(); jet++) {
+          //                               for(list<UCTCandidate>::iterator jet = corrJetList.begin(); jet != corrJetList.end(); jet++) { 
+            if((int)region->gctPhi() == jet->getInt("rgnPhi") &&
+              (int)region->gctEta() == jet->getInt("rgnEta")) {
+              MATCHEDJETFOUND_=true;
+              rlxTauRegionOnlyList.back().setFloat("associatedJetPt", jet->pt());
+              double jetIsolation = jet->pt() - tauEt;        // Jet isolation
+              double relativeJetIsolation = jetIsolation / tauEt;
+              if(relativeJetIsolation < relativeTauIsolationCut || (tauEt >= switchOffTauIso && relativeJetIsolation < relativeJetIsolationLimit)){
+                isoTauRegionOnlyList.push_back(rlxTauRegionOnlyList.back());
+              }
+              break;
+            }
+          }
+          if(!MATCHEDJETFOUND_){
+            rlxTauRegionOnlyList.back().setFloat("associatedJetPt", -777);
+            isoTauRegionOnlyList.push_back(rlxTauRegionOnlyList.back());
+          }
+        }
+      }
+
+          
+   
+      /*
       bool MATCHEDJETFOUND_=false;
 
       // Look for overlapping jet and require that isolation be passed
@@ -1187,7 +1321,7 @@ void UCT2015Producer::makeTaus() {
           if (do4x4Taus){
             double jetIsolation = jet->pt() - regionEt;        // Jet isolation
             double relativeJetIsolation = jetIsolation / regionEt;
-            if(relativeJetIsolation < relativeTauIsolationCut || regionEt > switchOffTauIso){
+            if(relativeJetIsolation < relativeTauIsolationCut || (regionEt >= switchOffTauIso && relativeJetIsolation < relativeJetIsolationLimit)){
               isoTauRegionOnlyList.push_back(rlxTauRegionOnlyList.back());
             }
           }
@@ -1195,7 +1329,7 @@ void UCT2015Producer::makeTaus() {
           else{
             double jetIsolation = jet->pt() - tauEt;        // Jet isolation
             double relativeJetIsolation = jetIsolation / tauEt;
-            if(relativeJetIsolation < relativeTauIsolationCut || tauEt > switchOffTauIso){
+            if(relativeJetIsolation < relativeTauIsolationCut || (tauEt >= switchOffTauIso  && relativeJetIsolation < relativeJetIsolationLimit)){
               isoTauRegionOnlyList.push_back(rlxTauRegionOnlyList.back());
             }
           }	
@@ -1206,7 +1340,7 @@ void UCT2015Producer::makeTaus() {
       if(!MATCHEDJETFOUND_){ 
         rlxTauRegionOnlyList.back().setFloat("associatedJetPt", -777);
         isoTauRegionOnlyList.push_back(rlxTauRegionOnlyList.back());
-      }
+      }*/
     } 
   	
   }
