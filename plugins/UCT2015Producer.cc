@@ -159,9 +159,9 @@ private:
   unsigned int tauSeed;
   unsigned int neighborSeed;
 
-  double relativeTauIsolationCut;
-  double relativeJetIsolationCut;
-  double relativeJetIsolationLimit;
+  double relativeJetIsolationForTausCut;
+  double relativeJetIsolationForElectronsCut;
+  double relativeJetIsolationForTausLimit;
 
   double switchOffTauIso;
   double switchOffTauVeto;
@@ -212,9 +212,9 @@ UCT2015Producer::UCT2015Producer(const edm::ParameterSet& iConfig) :
   tauSeed(iConfig.getParameter<unsigned int>("tauSeed")),
   neighborSeed(iConfig.getParameter<unsigned int>("neighborSeed")),
   
-  relativeTauIsolationCut(iConfig.getParameter<double>("relativeTauIsolationCut")),
-  relativeJetIsolationCut(iConfig.getParameter<double>("relativeJetIsolationCut")),
-  relativeJetIsolationLimit(iConfig.getParameter<double>("relativeJetIsolationLimit")),
+  relativeJetIsolationForTausCut(iConfig.getParameter<double>("relativeJetIsolationForTausCut")),
+  relativeJetIsolationForElectronsCut(iConfig.getParameter<double>("relativeJetIsolationForElectronsCut")),
+  relativeJetIsolationForTausLimit(iConfig.getParameter<double>("relativeJetIsolationForTausLimit")),
   switchOffTauIso(iConfig.getParameter<double>("switchOffTauIso")),
   switchOffTauVeto(iConfig.getParameter<double>("switchOffTauVeto")),
 
@@ -1103,7 +1103,7 @@ void UCT2015Producer::makeEGTaus() {
               double jetIsolation = jet->pt() - regionEt;        // Jet isolation
               double relativeJetIsolation = jetIsolation / regionEt;
               // A 2x1 and 1x2 cluster above egtSeed passing relative isolation will be in tau list
-              if(relativeJetIsolation < relativeTauIsolationCut || regionEt > switchOffTauIso){
+              if(relativeJetIsolation < relativeJetIsolationForTausCut || regionEt > switchOffTauIso){
                 isoTauList.push_back(rlxTauList.back());
               }
               //double jetIsolationRegionEG = jet->pt()-regionEt;   // Core isolation (could go less than zero)
@@ -1112,7 +1112,7 @@ void UCT2015Producer::makeEGTaus() {
               double relativeJetIsolationEG = jetIsolationEG / et;
  
               bool isolatedEG=false;
-              if(et<63 && relativeJetIsolationEG < relativeJetIsolationCut)  isolatedEG=true;; 
+              if(et<63 && relativeJetIsolationEG < relativeJetIsolationForElectronsCut)  isolatedEG=true;; 
               if (et>=63) isolatedEG=true;;
 
               if(isEle){
@@ -1257,7 +1257,7 @@ void UCT2015Producer::makeTaus() {
             rlxTauRegionOnlyList.back().setFloat("associatedJetPt", jet->pt());
             double jetIsolation = jet->pt() - regionEt;        // Jet isolation
             double relativeJetIsolation = jetIsolation / regionEt;
-            if(relativeJetIsolation < relativeTauIsolationCut || (regionEt >= switchOffTauIso && relativeJetIsolation < relativeJetIsolationLimit)){
+            if(relativeJetIsolation < relativeJetIsolationForTausCut || (regionEt >= switchOffTauIso && relativeJetIsolation < relativeJetIsolationForTausLimit)){
               isoTauRegionOnlyList.push_back(rlxTauRegionOnlyList.back());
             }
             break;
@@ -1280,7 +1280,7 @@ void UCT2015Producer::makeTaus() {
               rlxTauRegionOnlyList.back().setFloat("associatedJetPt", jet->pt());
               double jetIsolation = jet->pt() - tauEt;        // Jet isolation
               double relativeJetIsolation = jetIsolation / tauEt;
-              if(relativeJetIsolation < relativeTauIsolationCut || (tauEt >= switchOffTauIso && relativeJetIsolation < relativeJetIsolationLimit)){
+              if(relativeJetIsolation < relativeJetIsolationForTausCut || (tauEt >= switchOffTauIso && relativeJetIsolation < relativeJetIsolationForTausLimit)){
                 isoTauRegionOnlyList.push_back(rlxTauRegionOnlyList.back());
               }
               break;
