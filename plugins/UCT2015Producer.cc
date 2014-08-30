@@ -75,6 +75,10 @@ private:
 		       unsigned int* egFlagsInAnnulus,
 		       unsigned int* mipInSecondRegion) const;
 
+
+  // 12x12 energy, not jet
+  double findEnergy12x12(int ieta, int iphi, const L1CaloRegionCollection& regions);
+  
   // Helper methods
 
   void puSubtraction();
@@ -726,6 +730,36 @@ UCT2015Producer::correctJets(const list<UCTCandidate>& jets, bool isJet) {
   return corrlist;
 }   // This is outdated now - check with MIT for HI
 
+
+
+// Given a region, find the 12x12 energy around it
+
+double UCT2015Producer::findEnergy12x12(int ieta, int iphi, const L1CaloRegionCollection& regions){
+
+ unsigned int neighborsFound = 0;
+ double energy=0;
+
+ for(L1CaloRegionCollection::const_iterator region = regions.begin();
+   region != regions.end(); region++) {
+  int regionPhi = region->gctPhi();
+  int regionEta = region->gctEta();
+  unsigned int deltaPhi = std::abs(deltaPhiWrapAtN(18, iphi, regionPhi));
+  unsigned int deltaEta = std::abs(ieta - regionEta);
+  if (deltaPhi < 2 && deltaEta < 2) {
+   double regionET = regionPhysicalEt(*region);
+   energy+=regionET;
+   neighborsFound++;
+   if (neighborsFound == 9) { break;}
+  }
+
+ }
+
+ return energy;
+}
+
+
+
+
 // Given a region at iphi/ieta, find the highest region in the surrounding
 // regions.
 void UCT2015Producer::findAnnulusInfo(int ieta, int iphi,
@@ -831,6 +865,8 @@ void UCT2015Producer::makeEGTaus() {
 			    &associatedSecondRegionEt, &associatedThirdRegionEt, &mipsInAnnulus, &egFlagsInAnnulus,
 			    &mipInSecondRegion);
 
+           double energy12x12=findEnergy12x12(egtCand->regionId().ieta(), egtCand->regionId().iphi(),*newRegions);
+
 	    UCTCandidate egtauCand(
 				   et,
 				   convertRegionEta(egtCand->regionId().ieta()),
@@ -860,29 +896,27 @@ void UCT2015Producer::makeEGTaus() {
 	    egtauCand.setInt("tauVeto", region->tauVeto());
 	    egtauCand.setInt("mipBit", region->mip());
 	    egtauCand.setInt("isEle", isEle);
+            egtauCand.setFloat("energy12x12", energy12x12);
 
-	    /*
-	      tauCand.setInt("rgnEta", egtCand->regionId().ieta());
-	      tauCand.setInt("rgnPhi", egtCand->regionId().iphi());
-	      tauCand.setInt("rctEta", egtCand->regionId().rctEta());
-	      tauCand.setInt("rctPhi", egtCand->regionId().rctPhi());
-	      tauCand.setFloat("associatedRegionEt", regionEt);
-	      tauCand.setFloat("associatedJetPt", -3);
-	      tauCand.setFloat("associatedSecondRegionEt", associatedSecondRegionEt);
-	      tauCand.setInt("associatedSecondRegionMIP", mipInSecondRegion);
-	      tauCand.setInt("tauVeto", region->tauVeto());
-	      tauCand.setInt("mipBit", region->mip());
-	    */
+            // A 2x1 and 1x2 cluster above egtSeed is always in tau list
+            rlxTauList.push_back(egtauCand);
 
+            if (isEle){
+              rlxEGList.push_back(egtauCand);
+            }
+            double jetIsolationEG = energy12x12 - et;        // Jet isolation
+            double relativeJetIsolationEG = jetIsolationEG / et;
 
-	    // A 2x1 and 1x2 cluster above egtSeed is always in tau list
-	    rlxTauList.push_back(egtauCand);
+            bool isolatedEG=false;
+            if(et<63 && relativeJetIsolationEG < relativeJetIsolationCut)  isolatedEG=true;;
+            if (et>=63) isolatedEG=true;;
 
-	    // Note tauVeto now refers to emActivity pattern veto;
-	    // Good patterns are from EG candidates
-	    if (isEle){
-	      rlxEGList.push_back(egtauCand);
-	    }
+            if(isEle){
+              rlxEGList.back().setInt("isIsolated",isolatedEG);
+              if(isolatedEG){
+                 isoEGList.push_back(rlxEGList.back());
+              }
+            }
 
 	    // Look for overlapping jet and require that isolation be passed
 	    //                                          for(list<UCTCandidate>::iterator jet = corrJetList.begin(); jet != corrJetList.end(); jet++) { 
@@ -905,36 +939,11 @@ void UCT2015Producer::makeEGTaus() {
 		}
 
 
-		//                                                        cout<<"Electron? "<<et<<"   "<<jet->pt()<<"   "<<egtCand->regionId().ieta()<<endl;
-
-		double jetIsolation = jet->pt() - regionEt;        // Jet isolation
-		double relativeJetIsolation = jetIsolation / regionEt;
-		// A 2x1 and 1x2 cluster above egtSeed passing relative isolation will be in tau list
-		if(relativeJetIsolation < relativeTauIsolationCut || regionEt > switchOffTauIso){
-		  isoTauList.push_back(rlxTauList.back());
-		}
-		//double jetIsolationRegionEG = jet->pt()-regionEt;   // Core isolation (could go less than zero)
-		//double relativeJetIsolationRegionEG = jetIsolationRegionEG / regionEt;
-		double jetIsolationEG = jet->pt() - et;        // Jet isolation
-		double relativeJetIsolationEG = jetIsolationEG / et;
-
-		bool isolatedEG=false;
-		if(et<63 && relativeJetIsolationEG < relativeJetIsolationCut)  isolatedEG=true;; 
-		if (et>=63) isolatedEG=true;;
-                                                        
-		if(isEle){
-		  rlxEGList.back().setInt("isIsolated",isolatedEG);
-		  if(isolatedEG){
-		    isoEGList.push_back(rlxEGList.back());
-		  }
-		}
-		break;
 	      }
 	    }
 	    if(!MATCHEDJETFOUND_ && isEle) {
 	      rlxEGList.back().setFloat("associatedJetPt",-777);
 	      rlxEGList.back().setInt("isHighPtEle",true);        
-	      rlxEGList.back().setInt("isIsolated",true);
 	      isoEGList.push_back(rlxEGList.back());
 	    }
 	    break;
@@ -945,11 +954,9 @@ void UCT2015Producer::makeEGTaus() {
   rlxEGList.sort();
   rlxTauList.sort();
   isoEGList.sort();
-  isoTauList.sort();
   rlxEGList.reverse();
   rlxTauList.reverse();
   isoEGList.reverse();
-  isoTauList.reverse();
 
 }
 
