@@ -159,7 +159,7 @@ RegionCorrection::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 
 
-		double puSub = m_regionSubtraction[18*regionEta+pumbin]*2;
+		int puSub = ceil(m_regionSubtraction[18*regionEta+pumbin]*2);
           	//The values in m_regionSubtraction are MULTIPLIED by RegionLSB=.5 (physicalRegionEt), so 
           	//to get back unmultiplied regionSubtraction we want to multiply the number by 2 (aka divide by LSB).
                 if(!puMultCorrect_) puSub=0; 
@@ -167,7 +167,7 @@ RegionCorrection::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
                 if(regionET - puSub<1) {regionEtCorr =0 ;} 
                 else {
-		        double pum0pt =  (int) (regionET - puSub-energyECAL2x1); //subtract ECAl energy 
+		        double pum0pt =  (regionET - puSub-energyECAL2x1); //subtract ECAl energy 
 		        double corrpum0pt = pum0pt*alpha+gamma+energyECAL2x1; //add back in ECAL energy, calibrate regions(not including the ECAL2x1).
 
 		        if (corrpum0pt<0) {corrpum0pt=0;} //zero floor
