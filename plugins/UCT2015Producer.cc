@@ -127,8 +127,8 @@ private:
   vector<int> puLevelHIHI;
 
   unsigned int sumET;
-  int sumEx;
-  int sumEy;
+  double sumEx;
+  double sumEy;
   unsigned int MET;
 
   unsigned int regionETCutForHT;
@@ -138,8 +138,8 @@ private:
   unsigned int minGctEtaForSums;
   unsigned int maxGctEtaForSums;
   unsigned int sumHT;
-  int sumHx;
-  int sumHy;
+  double sumHx;
+  double sumHy;
   unsigned int MHT;
 
   unsigned int sumExtraET;
@@ -480,16 +480,16 @@ void UCT2015Producer::makeSums()
       regionET = std::max(regionPhysicalEt(*newRegion) - puLevelHI*regionLSB_/9., 0.);
       }
     */
- 
     if(regionET >= regionETCutForMET){
+        //std::cout << "UCT sumET + Region (" << newRegion->et() << ", " << newRegion->gctEta() << ", " << newRegion->gctPhi() << ")" << std::endl;
       sumET += regionET;
-      sumEx += (int) (((double) regionET) * cosPhi[newRegion->gctPhi()]);
-      sumEy += (int) (((double) regionET) * sinPhi[newRegion->gctPhi()]);
+      sumEx += (((double) regionET) * cosPhi[newRegion->gctPhi()]);
+      sumEy += (((double) regionET) * sinPhi[newRegion->gctPhi()]);
     }
     if(regionET >= regionETCutForHT) {
       sumHT += regionET;
-      sumHx += (int) (((double) regionET) * cosPhi[newRegion->gctPhi()]);
-      sumHy += (int) (((double) regionET) * sinPhi[newRegion->gctPhi()]);
+      sumHx += (((double) regionET) * cosPhi[newRegion->gctPhi()]);
+      sumHy += (((double) regionET) * sinPhi[newRegion->gctPhi()]);
     }
     else if(regionET >= regionETCutForNeighbor) {
       bool goodNeighbor = false;
@@ -507,8 +507,8 @@ void UCT2015Producer::makeSums()
       }
       if(goodNeighbor ) {
 	sumHT += regionET;
-	sumHx += (int) (((double) regionET) * cosPhi[newRegion->gctPhi()]);
-	sumHy += (int) (((double) regionET) * sinPhi[newRegion->gctPhi()]);
+	sumHx += (((double) regionET) * cosPhi[newRegion->gctPhi()]);
+	sumHy += (((double) regionET) * sinPhi[newRegion->gctPhi()]);
       }
     }
   }
