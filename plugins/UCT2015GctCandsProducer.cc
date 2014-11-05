@@ -50,6 +50,7 @@ using std::vector;
 UCT2015GctCandsProducer::UCT2015GctCandsProducer(const edm::ParameterSet& ps) :
   egSourceRlx_(ps.getParameter<edm::InputTag>("egRelaxed")),
   egSourceIso_(ps.getParameter<edm::InputTag>("egIsolated")),
+  tauSourceRlx_(ps.getParameter<edm::InputTag>("tauRelaxed")),
   tauSourceIso_(ps.getParameter<edm::InputTag>("tauIsolated")),
   jetSource_(ps.getParameter<edm::InputTag>("jetSource")),
   setSource_(ps.getParameter<edm::InputTag>("setSource")),
@@ -59,8 +60,8 @@ UCT2015GctCandsProducer::UCT2015GctCandsProducer(const edm::ParameterSet& ps) :
   saturateEG_(ps.getUntrackedParameter<bool>("saturateEG",true)),
   maxEGs_(ps.getUntrackedParameter<int>("maxEGs",4)),
   maxIsoEGs_(ps.getUntrackedParameter<int>("maxIsoEGs",4)),
-  maxTaus_(ps.getUntrackedParameter<int>("maxTaus",4)),
   maxIsoTaus_(ps.getUntrackedParameter<int>("maxIsoTaus",4)),
+  maxRlxTaus_(ps.getUntrackedParameter<int>("maxRlxTaus",4)),
   maxJets_(ps.getUntrackedParameter<int>("maxJets",4))
  {
 
@@ -68,7 +69,7 @@ UCT2015GctCandsProducer::UCT2015GctCandsProducer(const edm::ParameterSet& ps) :
   produces<L1GctEmCandCollection>("isoEm");
   produces<L1GctEmCandCollection>("nonIsoEm");
   produces<L1GctJetCandCollection>("tauJets");
-//  produces<L1GctJetCandCollection>("isoTau");
+  produces<L1GctJetCandCollection>("rlxTauJets");
 
   produces<L1GctJetCandCollection>("cenJets");
   produces<L1GctJetCandCollection>("forJets");
@@ -213,7 +214,6 @@ void UCT2015GctCandsProducer::produce(edm::Event& e, const edm::EventSetup& c) {
 
 
      // isoTAU
-     // We'll only use this one    
       edm::Handle< UCTCandidateCollection > tauObjsIso ;
       e.getByLabel( tauSourceIso_, tauObjsIso ) ;
 
@@ -242,6 +242,40 @@ void UCT2015GctCandsProducer::produce(edm::Event& e, const edm::EventSetup& c) {
                         for ( unsigned int j = 0 ; j<(maxIsoTaus_-isoTauResult->size()); j++){
                                 L1GctJetCand gctJetCand=L1GctJetCand( 0,(unsigned)0,(unsigned)0,1,0,(uint16_t) 0, (uint16_t) 0, 0);
                                 isoTauResult->push_back( gctJetCand  );
+                        }
+
+      }
+
+
+     // rlxTAU
+      edm::Handle< UCTCandidateCollection > tauObjsRlx ;
+      e.getByLabel( tauSourceRlx_, tauObjsRlx ) ;
+
+      if( !tauObjsRlx.isValid() ) {
+                edm::LogError("")<<"rlxTAU Collection not found - check name";
+      }
+      else {
+                for( unsigned int i = 0 ; i<tauObjsRlx->size() && i<maxRlxTaus_; i++){
+                        UCTCandidate itr=tauObjsRlx->at(i);
+                        unsigned iEta=itr.getInt("rgnEta");
+                        unsigned iPhi=itr.getInt("rgnPhi");
+                        unsigned rctEta=itr.getInt("rctEta");
+                        unsigned hwEta=(((rctEta % 7) & 0x7) | (iEta<11 ? 0x8 : 0));
+                        unsigned hwPhi= iPhi& 0x1f;
+                        const int16_t bx=0; 
+                        //double pt=itr.getFloat("associatedRegionEt");
+                        double pt=itr.pt();
+                        unsigned rank = jetScale->rank(pt);
+                        bool isFor=false;
+                        bool isTau=true;
+                        L1GctJetCand gctJetCand=L1GctJetCand(rank, hwPhi, hwEta, isTau , isFor,(uint16_t) 0, (uint16_t) 0, bx);
+                        rlxTauResult->push_back( gctJetCand  );
+
+                }
+                if(rlxTauResult->size()<maxRlxTaus_)
+                        for ( unsigned int j = 0 ; j<(maxRlxTaus_-rlxTauResult->size()); j++){
+                                L1GctJetCand gctJetCand=L1GctJetCand( 0,(unsigned)0,(unsigned)0,1,0,(uint16_t) 0, (uint16_t) 0, 0);
+                                rlxTauResult->push_back( gctJetCand  );
                         }
 
       }
@@ -395,7 +429,7 @@ void UCT2015GctCandsProducer::produce(edm::Event& e, const edm::EventSetup& c) {
   e.put(isoEmResult,"isoEm");
 
   e.put(isoTauResult,"tauJets");
-//  e.put(rlxTauResult,"rlxTau");
+  e.put(rlxTauResult,"rlxTauJets");
 
   e.put(cenJetResult,"cenJets");
   e.put(forJetResult,"forJets");
